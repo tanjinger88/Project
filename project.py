@@ -16,6 +16,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# --- Define API Key from Streamlit Secrets ---
+# Make sure you have configured secrets.toml on Streamlit Cloud or locally (.streamlit/secrets.toml)
+API_KEY = st.secrets["API_KEY"]
+
 # --- Enterprise Banking Dark Mode & OCBC Red Theme Styling ---
 st.markdown("""
     <style>
@@ -329,7 +333,7 @@ if not current_week_exists:
     with st.spinner("Executing background feeds synchronization & vector cross-matching..."):
         yahoo_headlines = get_yahoo_news(current_start_dt, current_end_dt)
         investing_headlines = get_investing_news(current_start_dt, current_end_dt)
-        av_headlines = get_alpha_vantage_news(current_start_dt, current_end_dt, "VD5TVE4G4WNKHC45") 
+        av_headlines = get_alpha_vantage_news(current_start_dt, current_end_dt, API_KEY) 
         
         new_results = find_common_and_recommend(yahoo_headlines, investing_headlines, av_headlines)
         
@@ -350,7 +354,6 @@ if not df_master.empty and "Archived Week" in df_master.columns:
 
 # --- Sidebar Controls ---
 st.sidebar.markdown("### ⚙️ Timeline Settings")
-# st.sidebar.markdown("Select reporting window for audit and distribution.")
 
 if available_weeks:
     target_date_str = st.sidebar.selectbox(

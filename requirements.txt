@@ -2,9 +2,5 @@ streamlit #most often required
 pandas #if dealing with data
 feedparser
 requests
-os
-datetime  
-zoneinfo 
-newspaper 
-sklearn.feature_extraction.text 
-sklearn.metrics.pairwise 
+newspaper3k
+scikit-learn

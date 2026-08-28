@@ -360,4 +360,95 @@ if available_weeks:
         options=available_weeks,
         help="Access archived weekly summaries from the past 30 days."
     )
-    selected_date = datetime.strptime(target_date_str.split(" to ")[0], "%Y-%
+    selected_date = datetime.strptime(target_date_str.split(" to ")[0], "%Y-%m-%d").date()
+    start_dt, end_dt, _ = get_selected_week_range(selected_date)
+else:
+    st.sidebar.warning("No archived reports found.")
+    start_dt, end_dt, target_date_str = get_selected_week_range(current_dt_myt.date())
+
+st.sidebar.markdown("---")
+st.sidebar.info(f"**Selected Audit Window:**\n{target_date_str}")
+
+# --- Push Regulatory Notice to the Bottom of Sidebar ---
+st.sidebar.markdown("<br>" * 10, unsafe_allow_html=True) 
+st.sidebar.markdown(
+    """<div class="sidebar-disclaimer">
+    <strong>⚠️ Regulatory Notice</strong><br><br>
+    This document is generated for institutional and internal evaluation only. The recommendations provided are indicative, derived from automated multi-source synthesis, and do not constitute formal financial advice or binding portfolio commitments.
+    </div>""",
+    unsafe_allow_html=True
+)
+
+# --- Filter Data for Selected Week ---
+filtered_df = df_master[df_master["Archived Week"] == target_date_str] if (not df_master.empty and "Archived Week" in df_master.columns) else pd.DataFrame()
+
+if not filtered_df.empty:
+    # --- Executive KPI Summary Metrics in Styled Red Boxes ---
+    col1, col2, col3, col4 = st.columns(4)
+    total_recs = len(filtered_df)
+    buy_count = len(filtered_df[filtered_df["Recommendation Action"].str.contains("BUY", na=False)])
+    sell_count = len(filtered_df[filtered_df["Recommendation Action"].str.contains("SELL", na=False)])
+    hold_count = total_recs - (buy_count + sell_count)
+    
+    with col1:
+        st.metric(label="Total Top Headlines", value=total_recs)
+    with col2:
+        st.metric(label="Buy / Accumulate Signals", value=buy_count)
+    with col3:
+        st.metric(label="Sell / Caution Signals", value=sell_count)
+    with col4:
+        st.metric(label="Hold / Monitor Signals", value=hold_count)
+        
+    st.markdown("---")
+
+    # --- Header Action Toolbar ---
+    col_head1, col_head2 = st.columns([5.5, 0.8])
+    with col_head1:
+        st.subheader("Weekly Summarisation")
+    with col_head2:
+        csv_bytes = filtered_df.drop(columns=["Archived Week"]).to_csv(index=False).encode('utf-8')
+        st.markdown("<div style='display: flex; justify-content: flex-end;'>", unsafe_allow_html=True)
+        st.download_button(
+            label="Export CSV Report",
+            data=csv_bytes,
+            file_name=f"market_intelligence_report_{target_date_str.replace(' ', '_')}.csv",
+            mime="text/csv",
+            on_click=log_to_excel_tracker,       
+            args=(filtered_df, target_date_str)    
+        )
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    st.markdown("")
+
+    # --- Recommendation Cards Display ---
+    for idx, row in filtered_df.reset_index(drop=True).iterrows():
+        action_tag = row['Recommendation Action']
+        
+        badge_color = "#1E8E3E" if "BUY" in action_tag else ("#D93025" if "SELL" in action_tag else "#F29900")
+        formatted_date = str(row['Published Date (MYT)']).split()[0]
+        
+        with st.container():
+            st.markdown(f"""
+                <div style="background-color: #161B22; border: 1px solid #30363D; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                        <span style="font-size: 0.85rem; font-weight: 600; color: #8B949E;">HEADLINE &bull; PUBLISHED: {formatted_date}</span>
+                        <span style="background-color: {badge_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;">{action_tag}</span>
+                    </div>
+                    <h2 style="margin-top: 0rem; margin-bottom: 1rem; font-size: 1.5rem; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;">{row['Primary Headline']}</h2>
+                    <div style="margin-bottom: 0.75rem; color: #C9D1D9; font-size: 0.95rem;">
+                        <strong style="color: #F8FAFC; font-size: 0.95rem;">Analysis & Justification:</strong><br>
+                        <div style="margin-top: 0.35rem; line-height: 1.5; font-size: 0.95rem; color: #E2E8F0;">{row['Live Justification']}</div>
+                    </div>
+                    <div style="margin-top: 0.75rem; color: #8B949E; font-size: 0.95rem;">
+                        <strong style="color: #F8FAFC; font-size: 0.95rem;">Source:</strong> <span style="color: #8B949E; font-size: 0.95rem;">{row['Sources Reporting']}</span>
+                    </div>
+            """, unsafe_allow_html=True)
+            
+            with st.expander("🔗 View Cross-Referenced Source Links"):
+                for link in str(row['All Matched Links']).split(" | "):
+                    st.markdown(f"- {link}")
+                    
+            st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+else:
+    st.info(f"No records available inside `master_market_archive.csv` for the selected reporting window: **{target_date_str}**.")

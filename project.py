@@ -431,7 +431,7 @@ if not filtered_df.empty:
             st.markdown(f"""
                 <div style="background-color: #161B22; border: 1px solid #30363D; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                        <span style="font-size: 0.85rem; font-weight: 600; color: #8B949E;">HEADLINE &bull; PUBLISHED: {formatted_date}</span>
+                        <span style="font-size: 0.85rem; font-weight: 600; color: #8B949E;">HEADLINE 1 &bull; PUBLISHED: {formatted_date}</span>
                         <span style="background-color: {badge_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;">{action_tag}</span>
                     </div>
                     <h2 style="margin-top: 0rem; margin-bottom: 1rem; font-size: 1.5rem; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;">{row['Primary Headline']}</h2>
@@ -439,7 +439,7 @@ if not filtered_df.empty:
                         <strong style="color: #F8FAFC;">Analysis & Justification:</strong><br>
                         <div style="margin-top: 0.35rem; line-height: 1.5;">{row['Live Justification']}</div>
                     </div>
-                    <p style="margin-bottom: 0.5rem; color: #8B949E; font-size: 0.85rem;"><strong>Corroborating Sources:</strong> {row['Sources Reporting']}</p>
+                    <p style="margin-bottom: 0.5rem; color: #8B949E; font-size: 0.85rem;"><strong>Source:</strong> {row['Sources Reporting']}</p>
             """, unsafe_allow_html=True)
             
             with st.expander("🔗 View Cross-Referenced Source Links"):

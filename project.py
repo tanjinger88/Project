@@ -210,7 +210,7 @@ def get_alpha_vantage_news(start_dt, end_dt, api_key=API_KEY):
                             "title": item.get("title"), 
                             "link": item.get("url", "No URL provided"), 
                             "source": "Alpha Vantage",
-                            "published_date": pub_date.strftime('%Y-%m-%d %H:%M:%S %Z')
+                            "published_date": pub_date.strftime('%Y-%m-%d')
                         })
         return articles
     except Exception:

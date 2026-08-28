@@ -10,6 +10,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 
 # --- Page Config ---
+# Sets up the Streamlit page title, layout width, and initial sidebar state.
 st.set_page_config(
     page_title="Multi-Source Financial Market Recommendation Report", 
     layout="wide",
@@ -17,9 +18,11 @@ st.set_page_config(
 )
 
 # --- Define API Key from Streamlit Secrets ---
+# Pulls the Alpha Vantage API key securely from Streamlit's secrets management.
 API_KEY = st.secrets["API_KEY"]
 
 # --- Enterprise Banking Dark Mode & OCBC Red Theme Styling ---
+# Injects custom CSS styling for a dark theme and custom accent colors.
 st.markdown("""
     <style>
     /* Global Application Canvas (Dark Mode) */
@@ -136,6 +139,7 @@ MASTER_CSV = "master_market_archive.csv"
 EXCEL_TRACKER = "download_audit_tracker.xlsx"
 
 # --- Top Navigation / Banner Branding ---
+# Renders the main dashboard title and introductory banner text.
 st.markdown("<h1>Multi-Source Financial Market Recommendation Report</h1>", unsafe_allow_html=True)
 st.markdown("""
 <div class="banner-subtitle">
@@ -154,6 +158,7 @@ def get_selected_week_range(selected_date):
     return monday_myt, sunday_myt, f"{monday_myt.strftime('%Y-%m-%d')} to {sunday_myt.strftime('%Y-%m-%d')}"
 
 def parse_entry_date(entry):
+    """Extracts and parses publication or update timestamps from RSS feed entries into MYT timezone."""
     myt_zone = ZoneInfo("Asia/Kuala_Lumpur")
     time_struct = getattr(entry, 'published_parsed', None) or getattr(entry, 'updated_parsed', None)
     if time_struct:
@@ -165,6 +170,7 @@ def parse_entry_date(entry):
     return None
 
 def get_yahoo_news(start_dt, end_dt):
+    """Fetches, filters, and parses RSS feed items from Yahoo Finance within a given date range."""
     feed = feedparser.parse("https://finance.yahoo.com/news/rssindex")
     articles = []
     for entry in feed.entries:
@@ -180,6 +186,7 @@ def get_yahoo_news(start_dt, end_dt):
     return articles
 
 def get_investing_news(start_dt, end_dt):
+    """Fetches, filters, and parses RSS feed items from Investing.com within a given date range."""
     feed = feedparser.parse("https://www.investing.com/rss/news_25.rss")
     articles = []
     for entry in feed.entries:
@@ -194,6 +201,7 @@ def get_investing_news(start_dt, end_dt):
     return articles
 
 def get_alpha_vantage_news(start_dt, end_dt, api_key=API_KEY):
+    """Queries Alpha Vantage's News Sentiment API for financial market updates and filters them by date."""
     url = f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=financial_markets&apikey={api_key}"
     try:
         response = requests.get(url, timeout=10)
@@ -217,6 +225,7 @@ def get_alpha_vantage_news(start_dt, end_dt, api_key=API_KEY):
         return []
 
 def extract_live_justification(url):
+    """Downloads and extracts paragraph text from a news URL to provide context/justification."""
     if not url or url == "No URL provided":
         return "No valid URL available for text extraction."
     try:
@@ -234,6 +243,7 @@ def extract_live_justification(url):
     return "Live text extraction unavailable."
 
 def analyze_action(text):
+    """Performs keyword-based sentiment analysis on a headline to categorize it into a trading signal."""
     text_lower = text.lower()
     if any(word in text_lower for word in ["drop", "fall", "slump", "crash", "inflation", "risk", "sell", "concern", "cut", "down", "loss", "tumble"]):
         return "SELL / CAUTION"
@@ -243,6 +253,7 @@ def analyze_action(text):
         return "HOLD / MONITOR"
 
 def find_common_and_recommend(yahoo, investing, av):
+    """Clusters similar headlines across multiple sources using TF-IDF and cosine similarity."""
     all_articles = yahoo + investing + av
     if not all_articles:
         return []
@@ -290,6 +301,7 @@ def find_common_and_recommend(yahoo, investing, av):
     return matched_results
 
 def log_to_excel_tracker(df_to_log, week_str):
+    """Logs downloaded report data into an Excel audit tracker file, appending and removing duplicates."""
     myt_zone = ZoneInfo("Asia/Kuala_Lumpur")
     download_time = datetime.now(myt_zone).strftime('%Y-%m-%d %H:%M:%S %Z')
     df_download = df_to_log.copy()
@@ -308,6 +320,7 @@ def log_to_excel_tracker(df_to_log, week_str):
         df_download.to_excel(EXCEL_TRACKER, index=False)
 
 # --- Load Master Archive CSV & Clean Data Older Than 1 Month ---
+# Loads the master historical archive and prunes records older than 30 days.
 myt_zone = ZoneInfo("Asia/Kuala_Lumpur")
 current_dt_myt = datetime.now(myt_zone)
 one_month_ago_dt = current_dt_myt - timedelta(days=30)
@@ -323,6 +336,7 @@ else:
     df_master = pd.DataFrame(columns=["Primary Headline", "Published Date (MYT)", "Recommendation Action", "Live Justification", "Sources Reporting", "All Matched Links", "Archived Week"])
 
 # --- AUTOMATED BACKGROUND SCRAPER FOR CURRENT WEEK ---
+# Automatically scrapes and synthesizes news feeds for the current week if missing from the archive.
 current_start_dt, current_end_dt, current_target_str = get_selected_week_range(current_dt_myt.date())
 
 current_week_exists = False
@@ -353,6 +367,7 @@ if not df_master.empty and "Archived Week" in df_master.columns:
     available_weeks = sorted(df_master["Archived Week"].dropna().unique().tolist(), reverse=True)
 
 # --- Sidebar Controls ---
+# Renders sidebar settings for choosing reporting periods and displaying notices.
 st.sidebar.markdown("### ⚙️ Timeline Settings")
 
 if available_weeks:
@@ -371,6 +386,7 @@ st.sidebar.markdown("---")
 st.sidebar.info(f"**Selected Audit Window:**\n{target_date_str}")
 
 # --- Push Regulatory Notice to the Bottom of Sidebar ---
+# Injects structural space before rendering the regulatory disclaimer box at the bottom of the sidebar.
 st.sidebar.markdown("<br>" * 10, unsafe_allow_html=True) 
 st.sidebar.markdown(
     """<div class="sidebar-disclaimer">
@@ -381,10 +397,12 @@ st.sidebar.markdown(
 )
 
 # --- Filter Data for Selected Week ---
+# Filters the master dataset based on the user's selected week window.
 filtered_df = df_master[df_master["Archived Week"] == target_date_str] if (not df_master.empty and "Archived Week" in df_master.columns) else pd.DataFrame()
 
 if not filtered_df.empty:
     # --- Executive KPI Summary Metrics in Styled Red Boxes ---
+    # Computes and displays KPI metrics (Total, Buy, Sell, Hold counts) in custom metric containers.
     col1, col2, col3, col4 = st.columns(4)
     total_recs = len(filtered_df)
     buy_count = len(filtered_df[filtered_df["Recommendation Action"].str.contains("BUY", na=False)])
@@ -403,6 +421,7 @@ if not filtered_df.empty:
     st.markdown("---")
 
     # --- Header Action Toolbar ---
+    # Renders the main content header alongside a CSV export download button.
     col_head1, col_head2 = st.columns([5.5, 0.8])
     with col_head1:
         st.subheader("Weekly Summarisation")
@@ -414,7 +433,7 @@ if not filtered_df.empty:
             data=csv_bytes,
             file_name=f"market_intelligence_report_{target_date_str.replace(' ', '_')}.csv",
             mime="text/csv",
-            on_click=log_to_excel_tracker,       
+            on_click=log_to_excel_tracker,        
             args=(filtered_df, target_date_str)    
         )
         st.markdown("</div>", unsafe_allow_html=True)
@@ -422,6 +441,7 @@ if not filtered_df.empty:
     st.markdown("")
 
     # --- Recommendation Cards Display ---
+    # Iterates through filtered records and displays each entry as a styled recommendation card with an expander for source links.
     for idx, row in filtered_df.reset_index(drop=True).iterrows():
         action_tag = row['Recommendation Action']
         

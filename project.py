@@ -11,7 +11,7 @@ import pandas as pd
 
 # --- Page Config ---
 st.set_page_config(
-    page_title="Institutional Market Intelligence | Enterprise Portal", 
+    page_title="Multi-Source Financial Market Recommendation Report", 
     layout="wide",
     initial_sidebar_state="expanded"
 )

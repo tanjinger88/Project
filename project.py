@@ -169,7 +169,8 @@ def get_yahoo_news(start_dt, end_dt):
     articles = []
     for entry in feed.entries:
         pub_date = parse_entry_date(entry)
-        if pub_date and start_dt <= pub_date <= end_dt:
+        # Ensure the article belongs strictly to Yahoo Finance's domain
+        if pub_date and start_dt <= pub_date <= end_dt and "yahoo.com" in entry.link.lower():
             articles.append({
                 "title": entry.title, 
                 "link": entry.link, 

@@ -17,6 +17,7 @@ st.set_page_config(
 )
 
 # --- Define API Key from Streamlit Secrets ---
+# Make sure you have configured secrets.toml on Streamlit Cloud or locally (.streamlit/secrets.toml)
 API_KEY = st.secrets["API_KEY"]
 
 # --- Enterprise Banking Dark Mode & OCBC Red Theme Styling ---
@@ -66,7 +67,7 @@ st.markdown("""
         color: #E2E8F0 !important;
     }
     
-    /* Professional Red-Hue KPI Metric Boxes */
+    /* Professional Red-Hue KPI Metric Boxes (Brighter Red Hue, Center Aligned) */
     [data-testid="stMetric"] {
         background-color: #261515 !important;
         border: 1px solid #5C2626 !important;
@@ -106,7 +107,7 @@ st.markdown("""
         background-color: #176F31 !important;
     }
     
-    /* Professional Regulatory Notice Styling */
+    /* Professional Regulatory Notice Styling (Red Accent, Left-Aligned) */
     .sidebar-disclaimer {
         background-color: #1A1212;
         border-left: 4px solid #DA291C;
@@ -370,7 +371,7 @@ st.sidebar.markdown("---")
 st.sidebar.info(f"**Selected Audit Window:**\n{target_date_str}")
 
 # --- Push Regulatory Notice to the Bottom of Sidebar ---
-st.sidebar.markdown("<br>" * 10, unsafe_allow_html=True) 
+st.sidebar.markdown("<br>" * 10, unsafe_allow_html=True)  # Spacer to push notice down
 st.sidebar.markdown(
     """<div class="sidebar-disclaimer">
     <strong>⚠️ Regulatory Notice</strong><br><br>
@@ -391,7 +392,7 @@ if not filtered_df.empty:
     hold_count = total_recs - (buy_count + sell_count)
     
     with col1:
-        st.metric(label="Total Top Headlines", value=total_recs)
+        st.metric(label="Total Validated Themes", value=total_recs)
     with col2:
         st.metric(label="Buy / Accumulate Signals", value=buy_count)
     with col3:
@@ -414,7 +415,7 @@ if not filtered_df.empty:
             file_name=f"market_intelligence_report_{target_date_str.replace(' ', '_')}.csv",
             mime="text/csv",
             on_click=log_to_excel_tracker,       
-            args=(filtered_df, target_date_str)    
+            args=(filtered_df, target_date_str)   
         )
         st.markdown("</div>", unsafe_allow_html=True)
     
@@ -424,14 +425,14 @@ if not filtered_df.empty:
     for idx, row in filtered_df.reset_index(drop=True).iterrows():
         action_tag = row['Recommendation Action']
         
+        # Color coding badges for dark mode contrast
         badge_color = "#1E8E3E" if "BUY" in action_tag else ("#D93025" if "SELL" in action_tag else "#F29900")
-        formatted_date = str(row['Published Date (MYT)']).split()[0]
         
         with st.container():
             st.markdown(f"""
                 <div style="background-color: #161B22; border: 1px solid #30363D; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                        <span style="font-size: 0.85rem; font-weight: 600; color: #8B949E;">HEADLINE &bull; PUBLISHED: {formatted_date}</span>
+                        <span style="font-size: 0.85rem; font-weight: 600; color: #8B949E;">ITEM #{idx + 1} &bull; PUBLISHED: {row['Published Date (MYT)']}</span>
                         <span style="background-color: {badge_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;">{action_tag}</span>
                     </div>
                     <h2 style="margin-top: 0rem; margin-bottom: 1rem; font-size: 1.5rem; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;">{row['Primary Headline']}</h2>

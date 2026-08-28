@@ -436,12 +436,10 @@ if not filtered_df.empty:
                     </div>
                     <h2 style="margin-top: 0rem; margin-bottom: 1rem; font-size: 1.5rem; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;">{row['Primary Headline']}</h2>
                     <div style="margin-bottom: 0.75rem; color: #C9D1D9; font-size: 0.95rem;">
-                        <strong style="color: #F8FAFC; font-size: 0.95rem;">Analysis & Justification:</strong><br>
-                        <div style="margin-top: 0.35rem; line-height: 1.5; font-size: 0.95rem; color: #E2E8F0;">{row['Live Justification']}</div>
+                        <strong style="color: #F8FAFC;">Analysis & Justification:</strong><br>
+                        <div style="margin-top: 0.35rem; line-height: 1.5;">{row['Live Justification']}</div>
                     </div>
-                    <div style="margin-top: 0.75rem; color: #8B949E; font-size: 0.95rem;">
-                        <strong style="color: #F8FAFC; font-size: 0.95rem;">Source:</strong> <span style="color: #8B949E; font-size: 0.95rem;">{row['Sources Reporting']}</span>
-                    </div>
+                    <p style="margin-bottom: 0.5rem; color: #8B949E; font-size: 0.85rem;"><strong>Corroborating Sources:</strong> {row['Sources Reporting']}</p>
             """, unsafe_allow_html=True)
             
             with st.expander("🔗 View Cross-Referenced Source Links"):

@@ -175,7 +175,7 @@ def get_yahoo_news(start_dt, end_dt):
                 "title": entry.title, 
                 "link": entry.link, 
                 "source": "Yahoo Finance",
-                "published_date": pub_date.strftime('%Y-%m-%d %H:%M:%S %Z')
+                "published_date": pub_date.strftime('%Y-%m-%d')
             })
     return articles
 
@@ -189,7 +189,7 @@ def get_investing_news(start_dt, end_dt):
                 "title": entry.title, 
                 "link": entry.link, 
                 "source": "Investing.com",
-                "published_date": pub_date.strftime('%Y-%m-%d %H:%M:%S %Z')
+                "published_date": pub_date.strftime('%Y-%m-%d')
             })
     return articles
 
